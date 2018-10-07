@@ -60,16 +60,12 @@ class Conv():
 
     def backward(self, dout, debug=False):
         dout_flat = dout.transpose(1, 2, 3, 0).reshape(self.n_filter, -1)
-        # todo testing mm -- working
-        # dW = dout_flat @ self.X_col.T
         dw = mm.matrix_mult(dout_flat, self.x_col.T)
         dw = dw.reshape(self.w.shape)
 
         db = np.sum(dout, axis=(0, 2, 3)).reshape(self.n_filter, -1)
 
         w_flat = self.w.reshape(self.n_filter, -1)
-        # todo testing mm -- working
-        # dX_col = W_flat.T @ dout_flat
         dx_col = mm.matrix_mult(w_flat.T, dout_flat)
         shape = (self.n_x, self.d_x, self.h_x, self.w_x)
         dx = col2im_indices(dx_col, shape, self.h_filter, self.w_filter, self.padding, self.stride)
@@ -148,18 +144,12 @@ class FullyConnected:
 
     def forward(self, X):
         self.X = X
-        # todo testing mm--working
-        # out = self.X @ self.W + self.b
         out = mm.matrix_mult(self.X, self.W) + self.b
         return out
 
     def backward(self, dout):
-        # todo testing mm -- working
-        # dW = self.X.T @ dout
         dW = mm.matrix_mult(self.X.T, dout)
         db = np.sum(dout, axis=0)
-        # todo testing mm -- working
-        # dX = dout @ self.W.T
         dX = mm.matrix_mult(dout, self.W.T)
         return dX, [dW, db]
 

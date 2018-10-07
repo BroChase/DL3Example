@@ -1,5 +1,5 @@
 from __future__ import division
-from numba import cuda
+from numba import cuda, float32
 import math
 
 
