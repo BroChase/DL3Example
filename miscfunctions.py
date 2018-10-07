@@ -85,10 +85,76 @@ def sgd(nnet, x_train, y_train, minibatch_size, epoch, learning_rate, verbose=Tr
             print("Epoch {0} took {1}".format(i, t2-t1))
     return nnet
 
+def model_summary(cnn, model_type):
+    """
+    Print the model summary
+    :param model: nn model
+    :param model_type: name of file for summary to be saved as :type: string 'nn.png'
+    """
+    print('Layer 1: Convolutional')
+    print('x_dims {} x {}'.format(cnn.layers[0].h_x, cnn.layers[0].h_x))
+    print('Number of filters {}'.format(cnn.layers[0].n_filter))
+    print('Filter Height {}'.format(cnn.layers[0].h_filter))
+    print('Filter Width {}'.format(cnn.layers[0].w_filter))
+    print('Stride {}'.format(cnn.layers[0].stride))
+    print('Padding {}'.format(cnn.layers[0].padding))
+    print(
+        'Output dims {} x {} x {}'.format(cnn.layers[0].out_dim[0], cnn.layers[0].out_dim[1], cnn.layers[0].out_dim[2]))
+
+    print('Layer 1 Activation')
+    print(cnn.layers[1].name)
+
+    print('Layer 2: Maxpool')
+    print('Maxpool dims {} x {} x {}'.format(cnn.layers[0].out_dim[0], cnn.layers[0].out_dim[1],
+                                             cnn.layers[0].out_dim[2]))
+    print('Maxpool Filter dims {} x {}'.format(cnn.layers[2].size, cnn.layers[2].size))
+    print('Maxpool Stride {}'.format(cnn.layers[2].stride))
+    print('Maxpool output dims {} x {} x {}'.format(cnn.layers[2].out_dim[0], cnn.layers[2].out_dim[1],
+                                                    cnn.layers[2].out_dim[2]))
+
+    print('Layer 3: Convolutional')
+    print('Maxpool output dims {} x {} x {}'.format(cnn.layers[2].out_dim[0], cnn.layers[2].out_dim[1],
+                                                    cnn.layers[2].out_dim[2]))
+    print('Number of filters {}'.format(cnn.layers[3].n_filter))
+    print('Filter Height {}'.format(cnn.layers[3].h_filter))
+    print('Filter Width {}'.format(cnn.layers[3].w_filter))
+    print('Stride {}'.format(cnn.layers[3].stride))
+    print('Padding {}'.format(cnn.layers[3].padding))
+    print(
+        'Output dims {} x {} x {}'.format(cnn.layers[3].out_dim[0], cnn.layers[3].out_dim[1], cnn.layers[3].out_dim[2]))
+
+    print('Layer 3 Activation')
+    print(cnn.layers[4].name)
+
+    print('Layer 4: Maxpool')
+    print('Maxpool dims {} x {} x {}'.format(cnn.layers[3].out_dim[0], cnn.layers[3].out_dim[1],
+                                             cnn.layers[3].out_dim[2]))
+    print('Maxpool Filter dims {} x {}'.format(cnn.layers[5].size, cnn.layers[5].size))
+    print('Maxpool Stride {}'.format(cnn.layers[5].stride))
+    print('Maxpool output dims {} x {} x {}'.format(cnn.layers[5].out_dim[0], cnn.layers[5].out_dim[1],
+                                                    cnn.layers[5].out_dim[2]))
+
+    print('Layer 5: Flatten')
+
+    print('Layer 6: Fully Connected Layer')
+    print('Input {} x {} x {}'.format(cnn.layers[5].out_dim[0], cnn.layers[5].out_dim[1], cnn.layers[5].out_dim[2]))
+    print('Neurons {}'.format(cnn.layers[7].out_dim))
+
+    print('Layer 6 Activation')
+    print(cnn.layers[8].name)
+
+    print('Output Layer')
+    print('Input {}'.format(cnn.layers[7].out_dim))
+    print('Output {}'.format(cnn.layers[9].out_dim))
+
+    print('Output Activation Layer')
+    print(cnn.loss_func)
+
 
 class TanH:
     def __init__(self):
         self.params = []
+        self.name = 'tanH'
 
     def forward(self, x):
         """
@@ -108,6 +174,7 @@ class TanH:
 class ReLU:
     def __init__(self):
         self.params = []
+        self.name = 'ReLU'
 
     def forward(self, x):
         self.x = x
@@ -121,6 +188,7 @@ class ReLU:
 class sigmoid():
     def __init__(self):
         self.params = []
+        self.name = 'Sigmoid'
 
     def forward(self, x):
         out = expit(x)

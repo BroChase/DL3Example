@@ -44,6 +44,7 @@ out = layers.FullyConnected(50, num_classes)
 
 cnn = layers.CNN([conv1, sig, pool1, conv2, relu, pool2, flat, fc1, tanh, out])
 
+mf.model_summary(cnn, 'cnn_model_plot.png')
 
 cnn = mf.sgd(cnn, x_train, y_train, minibatch_size=200, epoch=20, learning_rate=0.01, x_test=x_test, y_test=y_test)
 

@@ -4,6 +4,7 @@ import miscfunctions as mf
 
 class Conv():
     def __init__(self, x_dim, n_filter, h_filter, w_filter, stride, padding):
+        self.name = 'Convolutional'
         self.d_x, self.h_x, self.w_x = x_dim
         # Number of filters
         self.n_filter = n_filter
@@ -32,19 +33,6 @@ class Conv():
 
         self.h_out, self.w_out = int(self.h_out), int(self.w_out)
         self.out_dim = (self.n_filter, self.h_out, self.w_out)
-
-    def toString(self):
-        return "ConvLayer params:[W,b]\n\nOther hyperparams:\nd_X(i.e., channels)=%d\nh_X=%d\nw_X=%d\nn_filter=%d\n" \
-               "h_filter=%d\nw_filter=%d\nstride=%d\npadding=%d\n" \
-               "W_dim=(%d,%d,%d,%d)\n" \
-               "b_dim=(%d,%d)\n" \
-               "out_dim=[%d,%d,%d]\n" \
-               % (self.d_x, self.h_x, self.w_x, self.n_filter, self.h_filter,
-                  self.w_filter, self.stride, self.padding, self.W.shape[0],
-                  self.W.shape[1], self.W.shape[2], self.W.shape[3],
-                  self.b.shape[0], self.b.shape[1],
-                  self.out_dim[0], self.out_dim[1], self.out_dim[2]
-                  )
 
     def forward(self, x, debug=False):
         self.n_x = x.shape[0]
@@ -75,6 +63,7 @@ class Conv():
 
 class Maxpool():
     def __init__(self, x_dim, size, stride):
+        self.name = 'Maxpool'
         # d_x = dimensions h_x = height of x w_x = width of x
         self.d_x, self.h_x, self.w_x = x_dim
         # Store params for maxpool layer
@@ -122,6 +111,7 @@ class Maxpool():
 class Flatten:
     def __init__(self):
         self.params = []
+        self.name = 'Flatten'
 
     def forward(self, x):
         self.x_shape = x.shape #backup original shape
@@ -137,6 +127,8 @@ class Flatten:
 
 class FullyConnected:
     def __init__(self, in_size, out_size):
+        self.name = 'FullyConnected'
+        self.out_dim = out_size
 
         self.W = np.random.randn(in_size, out_size) / np.sqrt(in_size / 2.)
         self.b = np.zeros((1, out_size))
