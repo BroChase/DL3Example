@@ -13,6 +13,7 @@ import time
 seed = 106015389
 np.random.seed(seed)
 
+
 def reshape_x(x_array):
     new_x = []
     for row in x_array:
@@ -60,6 +61,15 @@ def get_minibatches(x, y, minibatch_size, shuf=True):
     return minibatches
 
 
+def get_minibatch(x, y, minibatch_size, shuf=True):
+    if shuf:
+        x, y = shuffle(x, y)
+    for i in range(0, minibatch_size):
+        x_batch = x[i:i + minibatch_size, :, :, :]
+        y_batch = y[i:i + minibatch_size, ]
+    return x_batch, y_batch
+
+
 def accuracy(y_true, y_pred):
     return np.mean(y_pred == y_true)  # both are not one hot encoded
 
@@ -71,73 +81,116 @@ def vanilla_update(params, grads, learning_rate=0.01):
 
 
 # Stochastic gradient descent
-def sgd(nnet, x_train, y_train, minibatch_size, epoch, learning_rate, verbose=True, x_test=None, y_test=None):
+def sgd(nnet, x_train, y_train, f, minibatch_size, epoch, learning_rate, verbose=True, x_test=None, y_test=None):
     minibatches = get_minibatches(x_train, y_train, minibatch_size)
+    val_x, val_y = get_minibatch(x_train, y_train, 1000)
     e_nnet = []
     e_accuracy = []
+    e_validate = []
     e_loss = []
+    e_loss_val = []
     for i in range(epoch):
         t1 = time.time()
         loss = 0
         if verbose:
             print("Epoch {0}".format(i + 1))
+            f.write('Epoch {0}\n'.format(i + 1))
         for x_mini, y_mini in minibatches:
             loss, grads = nnet.train_step(x_mini, y_mini)
             vanilla_update(nnet.params, grads, learning_rate=learning_rate)
         if verbose:
             train_acc = accuracy(y_train, nnet.predict(x_train))
-            # test_acc = accuracy(y_test, nnet.predict(x_test))
+            test_acc = accuracy(val_y, nnet.predict(val_x))
+            v_loss, grads = nnet.train_step(val_x, val_y)
             e_nnet.append(nnet)
             e_accuracy.append(train_acc)
+            e_validate.append(test_acc)
             e_loss.append(loss)
+            e_loss_val.append(v_loss)
             t2 = time.time()
             print('Epoch run time {}'.format(t2-t1))
-            print("Loss = {0} | Training Accuracy = {1}".format(loss, train_acc))
-    return e_nnet, e_accuracy, e_loss
+            print("Loss = {:.3f} | Train Accuracy = {:.3f} | Valid. Accuracy = {:.3f}".format(loss, train_acc, test_acc))
+            f.write('Epoch run time {}\n'.format(t2-t1))
+            f.write("Loss = {:.3f} | Train Accuracy = {:.3f} | Valid. Accuracy = {:.3f}\n".format(loss, train_acc, test_acc))
 
-def model_summary(cnn, model_type):
+    return e_nnet, e_accuracy, e_validate, e_loss, e_loss_val
+
+def model_summary(cnn, model_type, f):
     """
     Print the model summary
     :param model: nn model
     :param model_type: name of file for summary to be saved as :type: string 'nn.png'
     """
-    print('-'*90)
+    print('-'*73)
     print('Layer (Type) Output Shape     Params')
-    print('Conv2D_1     {}      Number of Filters: {} Shape: {} x {} Stride:{} Padding:{}'.format
+    print('-'*73)
+    print('Conv2D_1     {}      Filters: {} Shape: {} x {} Stride:{} Padding:{}'.format
           (cnn.layers[0].out_dim, cnn.layers[0].n_filter, cnn.layers[0].h_filter, cnn.layers[0].w_filter,
            cnn.layers[0].stride, cnn.layers[0].padding))
-    print('-'*90)
+    print('-'*73)
     print('Activation: ', cnn.layers[1].name)
-    print('-'*90)
+    print('-'*73)
     print('MaxPool_1    {}      Shape: {} x {} Stride:{}'.format
           (cnn.layers[2].out_dim, cnn.layers[2].size, cnn.layers[2].size, cnn.layers[2].stride))
-    print('-'*90)
-    print('Conv2D_2     {}      Number of Filters: {} Shape: {} x {} Stride:{} Padding:{}'.format
+    print('-'*73)
+    print('Conv2D_2     {}      Filters: {} Shape: {} x {} Stride:{} Padding:{}'.format
           (cnn.layers[3].out_dim, cnn.layers[3].n_filter, cnn.layers[3].h_filter, cnn.layers[3].w_filter,
            cnn.layers[3].stride, cnn.layers[3].padding))
-    print('-'*90)
+    print('-'*73)
     print('Activation: ', cnn.layers[4].name)
-    print('-'*90)
+    print('-'*73)
     print('MaxPool_2    {}      Shape: {} x {} Stride:{}'.format
           (cnn.layers[5].out_dim, cnn.layers[5].size, cnn.layers[5].size, cnn.layers[5].stride))
-    print('-'*90)
+    print('-'*73)
     print('Flatten')
-    print('-'*90)
+    print('-'*73)
     print('Fully Connected Layer         Neurons: {}'.format(cnn.layers[7].out_dim))
-    print('-'*90)
+    print('-'*73)
     print('Activation: ', cnn.layers[8].name)
-    print('-'*90)
+    print('-'*73)
     print('Output Layer                  Output: {}'.format(cnn.layers[9].out_dim))
-    print('-'*90)
+    print('-'*73)
     print('Activation: Softmax')
 
-def plot_history(loss, accuracy):
+    f.write('='*73+'\n')
+    f.write('Layer (Type) Output Shape     Params\n')
+    f.write('='*73+'\n')
+    f.write('Conv2D_1     {}      Filters: {} Shape: {} x {} Stride:{} Padding:{}\n'.format
+          (cnn.layers[0].out_dim, cnn.layers[0].n_filter, cnn.layers[0].h_filter, cnn.layers[0].w_filter,
+           cnn.layers[0].stride, cnn.layers[0].padding))
+    f.write('='*73+'\n')
+    f.write('Activation: ' + cnn.layers[1].name+'\n')
+    f.write('='*73+'\n')
+    f.write('MaxPool_1    {}      Shape: {} x {} Stride:{}\n'.format
+          (cnn.layers[2].out_dim, cnn.layers[2].size, cnn.layers[2].size, cnn.layers[2].stride))
+    f.write('='*73+'\n')
+    f.write('Conv2D_2     {}      Filters: {} Shape: {} x {} Stride:{} Padding:{}\n'.format
+          (cnn.layers[3].out_dim, cnn.layers[3].n_filter, cnn.layers[3].h_filter, cnn.layers[3].w_filter,
+           cnn.layers[3].stride, cnn.layers[3].padding))
+    f.write('='*73+'\n')
+    f.write('Activation: ' + cnn.layers[4].name+'\n')
+    f.write('='*73+'\n')
+    f.write('MaxPool_2    {}      Shape: {} x {} Stride:{}\n'.format
+          (cnn.layers[5].out_dim, cnn.layers[5].size, cnn.layers[5].size, cnn.layers[5].stride))
+    f.write('='*73+'\n')
+    f.write('Flatten\n')
+    f.write('='*73+'\n')
+    f.write('Fully Connected Layer         Neurons: {}\n'.format(cnn.layers[7].out_dim))
+    f.write('='*73+'\n')
+    f.write('Activation: ' + cnn.layers[8].name+'\n')
+    f.write('='*73+'\n')
+    f.write('Output Layer                  Output: {}\n'.format(cnn.layers[9].out_dim))
+    f.write('='*73+'\n')
+    f.write('Activation: Softmax\n\n')
+
+def plot_history(loss, accuracy, validate, loss_validate):
     # As loss always exists
     epochs = range(1, len(loss) + 1)
 
     # Loss
     plt.figure(1)
     plt.plot(epochs, loss, 'b', label='Training loss')
+    plt.plot(epochs, loss_validate, 'g', label='Validate loss')
     title = 'cnn_loss'
     plt.title(title)
     plt.xlabel('Epochs')
@@ -149,6 +202,7 @@ def plot_history(loss, accuracy):
     # Accuracy
     plt.figure(2)
     plt.plot(epochs, accuracy, 'b', label='Training Accuracy')
+    plt.plot(epochs, validate, 'g', label='Validate Accuracy')
     title = 'cnn_Accuracy'
     plt.title(title)
     plt.xlabel('Epochs')
@@ -163,7 +217,7 @@ def plot_history(loss, accuracy):
     return temp
 
 
-def plot_confusion_matrix(cm, model_type, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+def plot_confusion_matrix(cm, model_type, f, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.

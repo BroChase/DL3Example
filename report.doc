@@ -1,0 +1,105 @@
+=========================================================================
+Layer (Type) Output Shape     Params
+=========================================================================
+Conv2D_1     (2, 26, 26)      Filters: 2 Shape: 3 x 3 Stride:1 Padding:0
+=========================================================================
+Activation: Sigmoid
+=========================================================================
+MaxPool_1    (2, 13, 13)      Shape: 2 x 2 Stride:2
+=========================================================================
+Conv2D_2     (2, 11, 11)      Filters: 2 Shape: 3 x 3 Stride:1 Padding:0
+=========================================================================
+Activation: ReLU
+=========================================================================
+MaxPool_2    (2, 10, 10)      Shape: 2 x 2 Stride:1
+=========================================================================
+Flatten
+=========================================================================
+Fully Connected Layer         Neurons: 50
+=========================================================================
+Activation: tanH
+=========================================================================
+Output Layer                  Output: 10
+=========================================================================
+Activation: Softmax
+
+Epoch 1
+Epoch run time 121.18057465553284
+Loss = 1.350196644046446 | Training Accuracy = 0.6266333333333334 | Validation Accuracy = 0.621
+Epoch 2
+Epoch run time 120.14464855194092
+Loss = 1.0674111208097106 | Training Accuracy = 0.6811666666666667 | Validation Accuracy = 0.683
+Epoch 3
+Epoch run time 120.120929479599
+Loss = 0.9274922949582747 | Training Accuracy = 0.70745 | Validation Accuracy = 0.704
+Epoch 4
+Epoch run time 119.63293623924255
+Loss = 0.8416066756383316 | Training Accuracy = 0.7223166666666667 | Validation Accuracy = 0.718
+Epoch 5
+Epoch run time 119.90979146957397
+Loss = 0.7853479996036825 | Training Accuracy = 0.7334166666666667 | Validation Accuracy = 0.719
+Epoch 6
+Epoch run time 120.23236441612244
+Loss = 0.7460794185677411 | Training Accuracy = 0.7419833333333333 | Validation Accuracy = 0.724
+Epoch 7
+Epoch run time 119.52666211128235
+Loss = 0.7168614646307836 | Training Accuracy = 0.7485166666666667 | Validation Accuracy = 0.732
+Epoch 8
+Epoch run time 120.86946487426758
+Loss = 0.6940960765575656 | Training Accuracy = 0.75665 | Validation Accuracy = 0.74
+Epoch 9
+Epoch run time 120.15425682067871
+Loss = 0.6768810240559037 | Training Accuracy = 0.7624666666666666 | Validation Accuracy = 0.747
+Epoch 10
+Epoch run time 119.85587859153748
+Loss = 0.6625489756960143 | Training Accuracy = 0.7680666666666667 | Validation Accuracy = 0.75
+Epoch 11
+Epoch run time 119.81459736824036
+Loss = 0.6502455383573935 | Training Accuracy = 0.77335 | Validation Accuracy = 0.752
+Epoch 12
+Epoch run time 119.552729845047
+Loss = 0.6396341776408565 | Training Accuracy = 0.7775666666666666 | Validation Accuracy = 0.757
+Epoch 13
+Epoch run time 119.52336239814758
+Loss = 0.6304071812209533 | Training Accuracy = 0.7819666666666667 | Validation Accuracy = 0.761
+Epoch 14
+Epoch run time 119.834392786026
+Loss = 0.6222219494164984 | Training Accuracy = 0.7865 | Validation Accuracy = 0.77
+Epoch 15
+Epoch run time 119.60907888412476
+Loss = 0.6149315906575642 | Training Accuracy = 0.7899166666666667 | Validation Accuracy = 0.77
+Epoch 16
+Epoch run time 119.80412983894348
+Loss = 0.6085176305815674 | Training Accuracy = 0.7939833333333334 | Validation Accuracy = 0.771
+Epoch 17
+Epoch run time 119.30863952636719
+Loss = 0.6027937905044773 | Training Accuracy = 0.7971333333333334 | Validation Accuracy = 0.778
+Epoch 18
+Epoch run time 119.42590546607971
+Loss = 0.5975382799149815 | Training Accuracy = 0.80015 | Validation Accuracy = 0.782
+Epoch 19
+Epoch run time 119.76940512657166
+Loss = 0.5926255187265702 | Training Accuracy = 0.8027666666666666 | Validation Accuracy = 0.787
+Epoch 20
+Epoch run time 120.17013096809387
+Loss = 0.5879200929488111 | Training Accuracy = 0.8055833333333333 | Validation Accuracy = 0.791
+
+
+Test Set Accuracy with best model parameters: 0.7989
+Classification report 
+=======================
+             precision    recall  f1-score   support
+
+          0       0.72      0.81      0.76      1000
+          1       0.97      0.94      0.96      1000
+          2       0.66      0.61      0.63      1000
+          3       0.82      0.84      0.83      1000
+          4       0.65      0.69      0.67      1000
+          5       0.93      0.91      0.92      1000
+          6       0.48      0.42      0.45      1000
+          7       0.91      0.92      0.91      1000
+          8       0.93      0.91      0.92      1000
+          9       0.91      0.94      0.93      1000
+
+avg / total       0.80      0.80      0.80     10000
+

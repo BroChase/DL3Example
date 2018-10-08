@@ -5,6 +5,8 @@ import layers
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 
+
+f = open('report.doc', 'w')
 ld = data_process.LoadDataModule()
 # Load Data into training/testing sets
 x_train, y_train = ld.load('train')
@@ -46,13 +48,15 @@ out = layers.FullyConnected(50, num_classes)
 
 cnn = layers.CNN([conv1, sig, pool1, conv2, relu, pool2, flat, fc1, tanh, out])
 
-mf.model_summary(cnn, 'cnn_model_plot.png')
+mf.model_summary(cnn, 'cnn_model_plot.png', f)
 
-e_nnet, e_accuracy, e_loss = mf.sgd(cnn, x_train, y_train, minibatch_size=200, epoch=20, learning_rate=0.01)
+e_nnet, e_accuracy, e_validate, e_loss, e_loss_val = mf.sgd(cnn, x_train, y_train, f, minibatch_size=200, epoch=20, learning_rate=0.01)
 
-best_net = mf.plot_history(e_loss, e_accuracy)
+best_net = mf.plot_history(e_loss, e_accuracy, e_validate, e_loss_val)
 y_pred = e_nnet[best_net[0]].predict(x_test)
 print('Test Set Accuracy with best model parameters: {}'.format(mf.accuracy(y_test, y_pred)))
+f.write('\n\n')
+f.write('Test Set Accuracy with best model parameters: {}\n'.format(mf.accuracy(y_test, y_pred)))
 
 # Print classification report
 print("Classification report \n=======================")
@@ -60,20 +64,19 @@ print(classification_report(y_true=y_test, y_pred=y_pred))
 print("Confusion matrix \n=======================")
 print(confusion_matrix(y_true=y_test, y_pred=y_pred))
 
+f.write("Classification report \n=======================\n")
+f.write(classification_report(y_true=y_test, y_pred=y_pred)+'\n')
+
 # Compute confusion matrix
 cnf_matrix = confusion_matrix(y_true=y_test, y_pred=y_pred)
 np.set_printoptions(precision=2)
 
 # Plot non-normalized confusion matrix
 plt.figure()
-mf.plot_confusion_matrix(cnf_matrix, 'cnn', classes=class_names,
-                                    title='Confusion matrix, without normalization')
+mf.plot_confusion_matrix(cnf_matrix, 'cnn', f, classes=class_names, title='Confusion matrix, without normalization')
 
 # Plot normalized confusion matrix
 plt.figure()
-mf.plot_confusion_matrix(cnf_matrix, 'cnn', classes=class_names, normalize=True,
-                                    title='Normalized confusion matrix')
+mf.plot_confusion_matrix(cnf_matrix, 'cnn', f, classes=class_names, normalize=True, title='Normalized confusion matrix')
 
 plt.show()
-
-print('test')
