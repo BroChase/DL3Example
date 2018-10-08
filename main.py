@@ -2,7 +2,8 @@ from im2col import *
 import data_process
 import miscfunctions as mf
 import layers
-
+from sklearn.metrics import classification_report, confusion_matrix
+import matplotlib.pyplot as plt
 
 ld = data_process.LoadDataModule()
 # Load Data into training/testing sets
@@ -19,6 +20,7 @@ x_train = (x_train - np.min(x_train)) / (np.max(x_train) - np.min(x_train))
 x_test = (x_test - np.min(x_test)) / (np.max(x_test) - np.min(x_test))
 x_dims = (1, 28, 28)
 num_classes = 10
+class_names = np.unique(y_train)
 
 # Conv layers with x dims 2 filters with kernel 3x3 stride of 1 and no padding
 conv1 = layers.Conv(x_dims, n_filter=2, h_filter=3, w_filter=3, stride=1, padding=0)
@@ -46,6 +48,32 @@ cnn = layers.CNN([conv1, sig, pool1, conv2, relu, pool2, flat, fc1, tanh, out])
 
 mf.model_summary(cnn, 'cnn_model_plot.png')
 
-cnn = mf.sgd(cnn, x_train, y_train, minibatch_size=200, epoch=20, learning_rate=0.01, x_test=x_test, y_test=y_test)
+e_nnet, e_accuracy, e_loss = mf.sgd(cnn, x_train, y_train, minibatch_size=200, epoch=20, learning_rate=0.01)
+
+best_net = mf.plot_history(e_loss, e_accuracy)
+y_pred = e_nnet[best_net[0]].predict(x_test)
+print('Test Set Accuracy with best model parameters: {}'.format(mf.accuracy(y_test, y_pred)))
+
+# Print classification report
+print("Classification report \n=======================")
+print(classification_report(y_true=y_test, y_pred=y_pred))
+print("Confusion matrix \n=======================")
+print(confusion_matrix(y_true=y_test, y_pred=y_pred))
+
+# Compute confusion matrix
+cnf_matrix = confusion_matrix(y_true=y_test, y_pred=y_pred)
+np.set_printoptions(precision=2)
+
+# Plot non-normalized confusion matrix
+plt.figure()
+mf.plot_confusion_matrix(cnf_matrix, 'cnn', classes=class_names,
+                                    title='Confusion matrix, without normalization')
+
+# Plot normalized confusion matrix
+plt.figure()
+mf.plot_confusion_matrix(cnf_matrix, 'cnn', classes=class_names, normalize=True,
+                                    title='Normalized confusion matrix')
+
+plt.show()
 
 print('test')

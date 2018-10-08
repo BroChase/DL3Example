@@ -1,13 +1,17 @@
 # Chase Brown
 # SID 106015389
 # DeepLearning PA 3: CNN
-
 import numpy as np
 from sklearn.utils import shuffle
 from sklearn.metrics import accuracy_score
 from scipy.special import expit
+import matplotlib.pyplot as plt
+import itertools
+from sklearn.metrics import classification_report, confusion_matrix
 import time
 
+seed = 106015389
+np.random.seed(seed)
 
 def reshape_x(x_array):
     new_x = []
@@ -69,6 +73,9 @@ def vanilla_update(params, grads, learning_rate=0.01):
 # Stochastic gradient descent
 def sgd(nnet, x_train, y_train, minibatch_size, epoch, learning_rate, verbose=True, x_test=None, y_test=None):
     minibatches = get_minibatches(x_train, y_train, minibatch_size)
+    e_nnet = []
+    e_accuracy = []
+    e_loss = []
     for i in range(epoch):
         t1 = time.time()
         loss = 0
@@ -79,11 +86,14 @@ def sgd(nnet, x_train, y_train, minibatch_size, epoch, learning_rate, verbose=Tr
             vanilla_update(nnet.params, grads, learning_rate=learning_rate)
         if verbose:
             train_acc = accuracy(y_train, nnet.predict(x_train))
-            test_acc = accuracy(y_test, nnet.predict(x_test))
+            # test_acc = accuracy(y_test, nnet.predict(x_test))
+            e_nnet.append(nnet)
+            e_accuracy.append(train_acc)
+            e_loss.append(loss)
             t2 = time.time()
-            print("Loss = {0} | Training Accuracy = {1} | Test Accuracy = {2}".format(loss, train_acc, test_acc))
-            print("Epoch {0} took {1}".format(i, t2-t1))
-    return nnet
+            print('Epoch run time {}'.format(t2-t1))
+            print("Loss = {0} | Training Accuracy = {1}".format(loss, train_acc))
+    return e_nnet, e_accuracy, e_loss
 
 def model_summary(cnn, model_type):
     """
@@ -91,64 +101,106 @@ def model_summary(cnn, model_type):
     :param model: nn model
     :param model_type: name of file for summary to be saved as :type: string 'nn.png'
     """
-    print('Layer 1: Convolutional')
-    print('x_dims {} x {}'.format(cnn.layers[0].h_x, cnn.layers[0].h_x))
-    print('Number of filters {}'.format(cnn.layers[0].n_filter))
-    print('Filter Height {}'.format(cnn.layers[0].h_filter))
-    print('Filter Width {}'.format(cnn.layers[0].w_filter))
-    print('Stride {}'.format(cnn.layers[0].stride))
-    print('Padding {}'.format(cnn.layers[0].padding))
-    print(
-        'Output dims {} x {} x {}'.format(cnn.layers[0].out_dim[0], cnn.layers[0].out_dim[1], cnn.layers[0].out_dim[2]))
+    print('-'*90)
+    print('Layer (Type) Output Shape     Params')
+    print('Conv2D_1     {}      Number of Filters: {} Shape: {} x {} Stride:{} Padding:{}'.format
+          (cnn.layers[0].out_dim, cnn.layers[0].n_filter, cnn.layers[0].h_filter, cnn.layers[0].w_filter,
+           cnn.layers[0].stride, cnn.layers[0].padding))
+    print('-'*90)
+    print('Activation: ', cnn.layers[1].name)
+    print('-'*90)
+    print('MaxPool_1    {}      Shape: {} x {} Stride:{}'.format
+          (cnn.layers[2].out_dim, cnn.layers[2].size, cnn.layers[2].size, cnn.layers[2].stride))
+    print('-'*90)
+    print('Conv2D_2     {}      Number of Filters: {} Shape: {} x {} Stride:{} Padding:{}'.format
+          (cnn.layers[3].out_dim, cnn.layers[3].n_filter, cnn.layers[3].h_filter, cnn.layers[3].w_filter,
+           cnn.layers[3].stride, cnn.layers[3].padding))
+    print('-'*90)
+    print('Activation: ', cnn.layers[4].name)
+    print('-'*90)
+    print('MaxPool_2    {}      Shape: {} x {} Stride:{}'.format
+          (cnn.layers[5].out_dim, cnn.layers[5].size, cnn.layers[5].size, cnn.layers[5].stride))
+    print('-'*90)
+    print('Flatten')
+    print('-'*90)
+    print('Fully Connected Layer         Neurons: {}'.format(cnn.layers[7].out_dim))
+    print('-'*90)
+    print('Activation: ', cnn.layers[8].name)
+    print('-'*90)
+    print('Output Layer                  Output: {}'.format(cnn.layers[9].out_dim))
+    print('-'*90)
+    print('Activation: Softmax')
 
-    print('Layer 1 Activation')
-    print(cnn.layers[1].name)
+def plot_history(loss, accuracy):
+    # As loss always exists
+    epochs = range(1, len(loss) + 1)
 
-    print('Layer 2: Maxpool')
-    print('Maxpool dims {} x {} x {}'.format(cnn.layers[0].out_dim[0], cnn.layers[0].out_dim[1],
-                                             cnn.layers[0].out_dim[2]))
-    print('Maxpool Filter dims {} x {}'.format(cnn.layers[2].size, cnn.layers[2].size))
-    print('Maxpool Stride {}'.format(cnn.layers[2].stride))
-    print('Maxpool output dims {} x {} x {}'.format(cnn.layers[2].out_dim[0], cnn.layers[2].out_dim[1],
-                                                    cnn.layers[2].out_dim[2]))
+    # Loss
+    plt.figure(1)
+    plt.plot(epochs, loss, 'b', label='Training loss')
+    title = 'cnn_loss'
+    plt.title(title)
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    t = 'cnn_loss.png'
+    plt.savefig(t)
 
-    print('Layer 3: Convolutional')
-    print('Maxpool output dims {} x {} x {}'.format(cnn.layers[2].out_dim[0], cnn.layers[2].out_dim[1],
-                                                    cnn.layers[2].out_dim[2]))
-    print('Number of filters {}'.format(cnn.layers[3].n_filter))
-    print('Filter Height {}'.format(cnn.layers[3].h_filter))
-    print('Filter Width {}'.format(cnn.layers[3].w_filter))
-    print('Stride {}'.format(cnn.layers[3].stride))
-    print('Padding {}'.format(cnn.layers[3].padding))
-    print(
-        'Output dims {} x {} x {}'.format(cnn.layers[3].out_dim[0], cnn.layers[3].out_dim[1], cnn.layers[3].out_dim[2]))
+    # Accuracy
+    plt.figure(2)
+    plt.plot(epochs, accuracy, 'b', label='Training Accuracy')
+    title = 'cnn_Accuracy'
+    plt.title(title)
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    t = 'cnn_accuracy.png'
+    plt.savefig(t)
+    plt.show()
 
-    print('Layer 3 Activation')
-    print(cnn.layers[4].name)
+    temp = max(enumerate(accuracy), key=(lambda x: x[1]))
 
-    print('Layer 4: Maxpool')
-    print('Maxpool dims {} x {} x {}'.format(cnn.layers[3].out_dim[0], cnn.layers[3].out_dim[1],
-                                             cnn.layers[3].out_dim[2]))
-    print('Maxpool Filter dims {} x {}'.format(cnn.layers[5].size, cnn.layers[5].size))
-    print('Maxpool Stride {}'.format(cnn.layers[5].stride))
-    print('Maxpool output dims {} x {} x {}'.format(cnn.layers[5].out_dim[0], cnn.layers[5].out_dim[1],
-                                                    cnn.layers[5].out_dim[2]))
+    return temp
 
-    print('Layer 5: Flatten')
 
-    print('Layer 6: Fully Connected Layer')
-    print('Input {} x {} x {}'.format(cnn.layers[5].out_dim[0], cnn.layers[5].out_dim[1], cnn.layers[5].out_dim[2]))
-    print('Neurons {}'.format(cnn.layers[7].out_dim))
+def plot_confusion_matrix(cm, model_type, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    :param cm: confusion matrix
+    :param classes: class_names 0-9
+    :param normalize: normalize true/false
+    :param title: Title of plot :type: String
+    :param cmap: color map
+    :param model_type: nn model type
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix\n============================")
+        t = model_type + '_norm_cfm.png'
+    else:
+        print('Confusion matrix, without normalization\n============================')
+        t = model_type + '_cfm.png'
 
-    print('Layer 6 Activation')
-    print(cnn.layers[8].name)
+    print(cm)
+    print("\n")
 
-    print('Output Layer')
-    print('Input {}'.format(cnn.layers[7].out_dim))
-    print('Output {}'.format(cnn.layers[9].out_dim))
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
 
-    print('Output Activation Layer')
-    print(cnn.loss_func)
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.savefig(t)
 
 
 class TanH:
@@ -198,32 +250,3 @@ class sigmoid():
     def backward(self, dout):
         dx = dout * self.out * (1 - self.out)
         return dx, []
-
-
-def momentum_update(velocity, params, grads, learning_rate=0.01, mu=0.9):
-    for v, param, grad in zip(velocity, params, reversed(grads)):
-        for i in range(len(grad)):
-            v[i] = mu*v[i] + learning_rate * grad[i]
-            param[i] -= v[i]
-
-
-def sgd_momentum(nnet, x_train, y_train, minibatch_size, epoch, lr, mu, x_test, y_test, verbose=True):
-    minibatches = get_minibatches(x_train, y_train, minibatch_size)
-    for i in range(epoch):
-        loss = 0
-        velocity = []
-        for param_layer in nnet.params:
-            p = [np.zeros_like(param) for param in list(param_layer)]
-            velocity.append(p)
-
-        if verbose:
-            print('Epoch {0}'.format(i + 1))
-        for x_mini, y_mini in minibatches:
-            loss, grads = nnet.train_step(x_mini, y_mini)
-            momentum_update(velocity, nnet.params, grads, learning_rate=lr, mu=mu)
-        if verbose:
-            train_acc = accuracy_score(y_train, nnet.predict(x_train))
-            test_acc = accuracy_score(y_test, nnet.predict(x_test))
-            print('Loss = {0} | Training Accuracy = {1} | Test Accuracy = {2}'.format(loss, train_acc, test_acc))
-
-    return nnet
