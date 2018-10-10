@@ -39,7 +39,7 @@ class Conv():
 
         self.x_col = im2col_indices(x, self.h_filter, self.w_filter, stride=self.stride, padding=self.padding)
         w_row = self.w.reshape(self.n_filter, -1)
-        # todo testing mm
+        # ***************************CPU or GPU********************
         # out = w_row @ self.x_col + self.b  # Wx +b
         out = mm.matrix_mult(w_row, self.x_col) + self.b
         out = out.reshape(self.n_filter, self.h_out, self.w_out, self.n_x)
@@ -48,6 +48,7 @@ class Conv():
 
     def backward(self, dout, debug=False):
         dout_flat = dout.transpose(1, 2, 3, 0).reshape(self.n_filter, -1)
+        # ***************************CPU or GPU********************
         # dw = dout_flat @ self.x_col.T
         dw = mm.matrix_mult(dout_flat, self.x_col.T)
         dw = dw.reshape(self.w.shape)
@@ -55,6 +56,7 @@ class Conv():
         db = np.sum(dout, axis=(0, 2, 3)).reshape(self.n_filter, -1)
 
         w_flat = self.w.reshape(self.n_filter, -1)
+        # ***************************CPU or GPU********************
         # dx_col = w_flat.T @ dout_flat
         dx_col = mm.matrix_mult(w_flat.T, dout_flat)
         shape = (self.n_x, self.d_x, self.h_x, self.w_x)
@@ -138,14 +140,17 @@ class FullyConnected:
 
     def forward(self, X):
         self.X = X
+        # ***************************CPU or GPU********************
         # out = self.X @ self.W + self.b
         out = mm.matrix_mult(self.X, self.W) + self.b
         return out
 
     def backward(self, dout):
         # dW = self.X.T @ dout
+        # ***************************CPU or GPU********************
         dW = mm.matrix_mult(self.X.T, dout)
         db = np.sum(dout, axis=0)
+        # ***************************CPU or GPU********************
         # dX = dout @ self.W.T
         dX = mm.matrix_mult(dout, self.W.T)
         return dX, [dW, db]
