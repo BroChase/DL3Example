@@ -50,25 +50,34 @@ cnn = layers.CNN([conv1, sig, pool1, conv2, relu, pool2, flat, fc1, tanh, out])
 
 mf.model_summary(cnn, 'cnn_model_plot.png', f)
 
-e_nnet, e_accuracy, e_validate, e_loss, e_loss_val = mf.sgd(cnn, x_train, y_train, f, minibatch_size=200, epoch=20, learning_rate=0.01)
+e_nnet, e_accuracy, e_validate, e_loss, e_loss_val = mf.sgd(cnn, x_train, y_train, f, minibatch_size=200, epoch=20,
+                                                            learning_rate=0.01)
+
 
 best_net = mf.plot_history(e_loss, e_accuracy, e_validate, e_loss_val)
-y_pred = e_nnet[best_net[0]].predict(x_test)
-print('Test Set Accuracy with best model parameters: {}'.format(mf.accuracy(y_test, y_pred)))
+mb = mf.batchdata(x_test, 1000)
+pred = []
+for j in range(len(mb)):
+    pred.append(e_nnet[best_net[0]].predict(mb[j]))
+pv = np.concatenate(pred, axis=0)
+
+# y_pred = e_nnet[best_net[0]].predict(x_test)
+
+print('Test Set Accuracy with best model parameters: {}'.format(mf.accuracy(y_test, pv)))
 f.write('\n\n')
-f.write('Test Set Accuracy with best model parameters: {}\n'.format(mf.accuracy(y_test, y_pred)))
+f.write('Test Set Accuracy with best model parameters: {}\n'.format(mf.accuracy(y_test, pv)))
 
 # Print classification report
 print("Classification report \n=======================")
-print(classification_report(y_true=y_test, y_pred=y_pred))
+print(classification_report(y_true=y_test, y_pred=pv))
 print("Confusion matrix \n=======================")
-print(confusion_matrix(y_true=y_test, y_pred=y_pred))
+print(confusion_matrix(y_true=y_test, y_pred=pv))
 
 f.write("Classification report \n=======================\n")
-f.write(classification_report(y_true=y_test, y_pred=y_pred)+'\n')
+f.write(classification_report(y_true=y_test, y_pred=pv)+'\n')
 
 # Compute confusion matrix
-cnf_matrix = confusion_matrix(y_true=y_test, y_pred=y_pred)
+cnf_matrix = confusion_matrix(y_true=y_test, y_pred=pv)
 np.set_printoptions(precision=2)
 
 # Plot non-normalized confusion matrix

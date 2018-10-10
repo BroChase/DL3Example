@@ -70,6 +70,15 @@ def get_minibatch(x, y, minibatch_size, shuf=True):
     return x_batch, y_batch
 
 
+def batchdata(x, minibatch_size):
+    m = x.shape[0]
+    minibatches = []
+    for i in range(0, m, minibatch_size):
+        x_batch = x[i:i + minibatch_size, :, :, :]
+        minibatches.append(x_batch)
+    return minibatches
+
+
 def accuracy(y_true, y_pred):
     return np.mean(y_pred == y_true)  # both are not one hot encoded
 
@@ -84,6 +93,7 @@ def vanilla_update(params, grads, learning_rate=0.01):
 def sgd(nnet, x_train, y_train, f, minibatch_size, epoch, learning_rate, verbose=True, x_test=None, y_test=None):
     minibatches = get_minibatches(x_train, y_train, minibatch_size)
     val_x, val_y = get_minibatch(x_train, y_train, 1000)
+    mb = batchdata(x_train, 1000)
     e_nnet = []
     e_accuracy = []
     e_validate = []
@@ -92,6 +102,7 @@ def sgd(nnet, x_train, y_train, f, minibatch_size, epoch, learning_rate, verbose
     for i in range(epoch):
         t1 = time.time()
         loss = 0
+        pred = []
         if verbose:
             print("Epoch {0}".format(i + 1))
             f.write('Epoch {0}\n'.format(i + 1))
@@ -99,7 +110,12 @@ def sgd(nnet, x_train, y_train, f, minibatch_size, epoch, learning_rate, verbose
             loss, grads = nnet.train_step(x_mini, y_mini)
             vanilla_update(nnet.params, grads, learning_rate=learning_rate)
         if verbose:
-            train_acc = accuracy(y_train, nnet.predict(x_train))
+            # todo break up x_train
+            for j in range(len(mb)):
+                pred.append(nnet.predict(mb[j]))
+            pv = np.concatenate(pred, axis=0)
+            train_acc = accuracy(y_train, pv)
+            #train_acc = accuracy(y_train, nnet.predict(x_train))
             test_acc = accuracy(val_y, nnet.predict(val_x))
             v_loss, grads = nnet.train_step(val_x, val_y)
             e_nnet.append(nnet)
@@ -109,9 +125,11 @@ def sgd(nnet, x_train, y_train, f, minibatch_size, epoch, learning_rate, verbose
             e_loss_val.append(v_loss)
             t2 = time.time()
             print('Epoch run time {}'.format(t2-t1))
-            print("Loss = {:.3f} | Train Accuracy = {:.3f} | Valid. Accuracy = {:.3f}".format(loss, train_acc, test_acc))
+            print("Loss = {:.3f} | Train Accuracy = {:.3f} | Valid. Accuracy = {:.3f}".format
+                  (loss, train_acc, test_acc))
             f.write('Epoch run time {}\n'.format(t2-t1))
-            f.write("Loss = {:.3f} | Train Accuracy = {:.3f} | Valid. Accuracy = {:.3f}\n".format(loss, train_acc, test_acc))
+            f.write("Loss = {:.3f} | Train Accuracy = {:.3f} | Valid. Accuracy = {:.3f}\n".format
+                    (loss, train_acc, test_acc))
 
     return e_nnet, e_accuracy, e_validate, e_loss, e_loss_val
 
